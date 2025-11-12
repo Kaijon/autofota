@@ -68,11 +68,12 @@ Note: etcd stores service configuration only, NOT device data (which would not s
 
 This diagram shows how the microservices interact.
 
+```mermaid
 flowchart TD
     subgraph "Your Cloud Infrastructure"
         direction TB
-  A[Admin User] -->|"1. Manages"| B(Dashboard UI)
-  B <-->|"2. GraphQL API"| BSvc[Dashboard Backend Service]
+        A[Admin User] -->|"1. Manages"| B(Dashboard UI)
+        B <-->|"2. GraphQL API"| BSvc[Dashboard Backend Service]
 
         subgraph "Backend Microservices"
             BSvc
@@ -91,8 +92,8 @@ flowchart TD
         BSvc <-->|"5. Service Config"| E((etcd Cluster))
         RegSvc <-->|"5. Service Config"| E
         OtaSvc <-->|"5. Service Config"| E
-        
-  RegSvc <-->|"6.Listens Heartbeats/Status"| F((MQTT Broker + TLS))
+
+        RegSvc <-->|"6.Listens Heartbeats/Status"| F((MQTT Broker + TLS))
         OtaSvc <-->|"6. Publishes Commands"| F
         OtaSvc -->|"7. Uploads Firmware"| S[Firmware Storage S3/GCS]
     end
@@ -114,8 +115,7 @@ flowchart TD
     style S fill:#f9f0ff,stroke:#531dab
     style E fill:#fff1e6,stroke:#d4380d
     style G fill:#f0f0f0,stroke:#595959
-
-
+```
 ## Core Data Flows (Microservice)
 
 ### Flow 1: Device Registration & Heartbeat (Enhanced with Security & Caching)
