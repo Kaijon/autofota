@@ -71,8 +71,8 @@ This diagram shows how the microservices interact.
 flowchart TD
     subgraph "Your Cloud Infrastructure"
         direction TB
-  A[Admin User] -->|"1.Manages"| B(Dashboard UI)
-  B <-->|"2.GraphQL API"| BSvc[Dashboard Backend Service]
+  A[Admin User] -->|"1. Manages"| B(Dashboard UI)
+  B <-->|"2. GraphQL API"| BSvc[Dashboard Backend Service]
 
         subgraph "Backend Microservices"
             BSvc
@@ -80,28 +80,28 @@ flowchart TD
             OtaSvc[OTA Management Service]
         end
         
-        BSvc <-->|"3.Reads/Writes"| D[PostgreSQL Database]
-        RegSvc <-->|"3.Writes"| D
-        OtaSvc <-->|"3.Reads/Writes"| D
+        BSvc <-->|"3. Reads/Writes"| D[PostgreSQL Database]
+        RegSvc <-->|"3. Writes"| D
+        OtaSvc <-->|"3. Reads/Writes"| D
 
-        BSvc <-->|"4.Fast Read Cache"| R[(Redis Cache)]
-        RegSvc -->|"4.Updates Cache"| R
-        OtaSvc <-->|"4.Fast Read Cache"| R
+        BSvc <-->|"4. Fast Read Cache"| R[(Redis Cache)]
+        RegSvc -->|"4. Updates Cache"| R
+        OtaSvc <-->|"4. Fast Read Cache"| R
 
-        BSvc <-->|"5.Service Config"| E((etcd Cluster))
-        RegSvc <-->|"5.Service Config"| E
-        OtaSvc <-->|"5.Service Config"| E
+        BSvc <-->|"5. Service Config"| E((etcd Cluster))
+        RegSvc <-->|"5. Service Config"| E
+        OtaSvc <-->|"5. Service Config"| E
         
   RegSvc <-->|"6.Listens Heartbeats/Status"| F((MQTT Broker + TLS))
-        OtaSvc <-->|"6.Publishes Commands"| F
-        OtaSvc -->|"7.Uploads Firmware"| S[Firmware Storage S3/GCS]
+        OtaSvc <-->|"6. Publishes Commands"| F
+        OtaSvc -->|"7. Uploads Firmware"| S[Firmware Storage S3/GCS]
     end
 
     subgraph "Devices in the Field"
         direction TB
-        F <-->|"8.Secure Pub/Sub TLS+Certs"| G([Device 1...N])
-        G -->|"9.Downloads HTTPs Pre-signed URL"| S
-        G -->|"10.Local Config Web UI"| G
+        F <-->|"8. Secure Pub/Sub TLS+Certs"| G([Device 1...N])
+        G -->|"9. Downloads HTTPs Pre-signed URL"| S
+        G -->|"10. Local Config Web UI"| G
     end
 
     style B fill:#e6f7ff,stroke:#0050b3
