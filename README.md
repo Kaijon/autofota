@@ -1,6 +1,57 @@
 https://www.tuvrblog.com/zh-tw/11265.html
 ## Spec
+## System Architecture Diagram (Mermaid)
 
+This diagram shows how the microservices interact.
+
+```mermaid
+flowchart TD
+    subgraph "Your Cloud Infrastructure"
+        direction TB
+        A[Admin User] -->|"1. Manages"| B(Dashboard UI)
+        B <-->|"2. GraphQL API"| BSvc[Dashboard Backend Service]
+
+        subgraph "Backend Microservices"
+            BSvc
+            RegSvc[Registration Service]
+            OtaSvc[OTA Management Service]
+        end
+        
+        BSvc <-->|"3. Reads/Writes"| D[PostgreSQL Database]
+        RegSvc <-->|"3. Writes"| D
+        OtaSvc <-->|"3. Reads/Writes"| D
+
+        BSvc <-->|"4. Fast Read Cache"| R[(Redis Cache)]
+        RegSvc -->|"4. Updates Cache"| R
+        OtaSvc <-->|"4. Fast Read Cache"| R
+
+        BSvc <-->|"5. Service Config"| E((etcd Cluster))
+        RegSvc <-->|"5. Service Config"| E
+        OtaSvc <-->|"5. Service Config"| E
+
+        RegSvc <-->|"6.Listens Heartbeats/Status"| F((MQTT Broker + TLS))
+        OtaSvc <-->|"6. Publishes Commands"| F
+        OtaSvc -->|"7. Uploads Firmware"| S[Firmware Storage S3/GCS]
+    end
+
+    subgraph "Devices in the Field"
+        direction TB
+        F <-->|"8. Secure Pub/Sub TLS+Certs"| G([Device 1...N])
+        G -->|"9. Downloads HTTPs Pre-signed URL"| S
+        G -->|"10. Local Config Web UI"| G
+    end
+
+    style B fill:#e6f7ff,stroke:#0050b3
+    style BSvc fill:#f6ffed,stroke:#389e0d
+    style RegSvc fill:#f6ffed,stroke:#389e0d
+    style OtaSvc fill:#f6ffed,stroke:#389e0d
+    style D fill:#fffbe6,stroke:#d48806
+    style R fill:#fff0f6,stroke:#eb2f96
+    style F fill:#fff0f6,stroke:#c41d7f
+    style S fill:#f9f0ff,stroke:#531dab
+    style E fill:#fff1e6,stroke:#d4380d
+    style G fill:#f0f0f0,stroke:#595959
+```
 
 ![Spec](2026_propose.md)
 高階摘要
