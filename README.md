@@ -109,9 +109,10 @@ flowchart TD
 - 未描述漸進發布/金絲雀策略、分批與自動化閘道（以避免大規模失敗）。
 - 圖表的補強處（文件較少強調的實務流程）
 
-明確呈現 CI → App/Firmware DB → Portal → MQTT topic 的實體流程，對產品與 CI 負責人更直觀。
-分離 App database 與 Firmware database 的概念，對於產品管理與版本管理有幫助。
-顯示多入口（App Store, FOTAPortal, Device Management）如何各自觸發或使用 MQTT topic，便於定義前端角色與 UX。
+## 文件的缺漏
+- 明確呈現 CI → App/Firmware DB → Portal → MQTT topic 的實體流程，對產品與 CI 負責人更直觀。
+- 分離 App database 與 Firmware database 的概念，對於產品管理與版本管理有幫助。
+- 顯示多入口（App Store, FOTAPortal, Device Management）如何各自觸發或使用 MQTT topic，便於定義前端角色與 UX。
 
 High-level summary
 
