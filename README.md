@@ -58,3 +58,59 @@ API 與前端模式：
 明確呈現 CI → App/Firmware DB → Portal → MQTT topic 的實體流程，對產品與 CI 負責人更直觀。
 分離 App database 與 Firmware database 的概念，對於產品管理與版本管理有幫助。
 顯示多入口（App Store, FOTAPortal, Device Management）如何各自觸發或使用 MQTT topic，便於定義前端角色與 UX。
+
+High-level summary
+
+Both designs target OTA/remote device management using MQTT + cloud storage for firmware, plus backend services and an admin UI.
+The diagram is a more compact, product-process view focused on CI → firmware/app DB → MQTT topics → device delivery and portals (App Store / FOTA / Device Management).
+2026_propose.md is a full microservice architecture proposal: detailed service decomposition, caches, service coordination (etcd), security, observability, scaling targets, GraphQL API and frontend patterns, and many operational details.
+Similarities
+
+Transport and delivery:
+Both use MQTT as the real-time message bus for commands/status and HTTPS/cloud blob (S3/Azure) for firmware/app binaries.
+Core functional pieces:
+Registration / device management, firmware repository, OTA/FOTA services, and an admin/dashboard portal appear in both.
+CI / release flow:
+Both show CI/build producing firmware/app artifacts and updating a DB or repository that triggers notification to backend services.
+Device-side behaviour:
+Diagram and doc both show devices downloading binaries over HTTPS and receiving commands via MQTT.
+Key differences (practical / architectural)
+
+Level of detail and scope
+Diagram: high-level product flow + CI integration and UI portals; focuses on where artifacts live and which MQTT topics deliver which type of content.
+2026_propose.md: architecture-level design with technology choices, operational concerns (HA, backup), scalability math, monitoring, security practices, and implementation hints (gqlgen, Redis, Postgres, etcd).
+Service decomposition & infrastructure
+Diagram: groups MQTT-handling into "MQTT Services' Topics" (App Services, Firmware Update Services, Device Management Services) — a compact single-layer service view.
+Doc: explicit separate microservices (Registration, OTA Management, Dashboard Backend), Redis cache layer, PostgreSQL as source-of-truth, etcd for service coordination, and explicit SRE patterns (replicas, clusters).
+Caching and fast reads
+Diagram: no explicit cache (Redis) or explanation of fast-path reads.
+Doc: explicit Redis usage for TTL device state, pub/sub bridging, and performance targets.
+Service discovery / configuration
+Diagram: no mention of service discovery or configuration store.
+Doc: uses etcd for discovery, leader election, and shared configuration.
+API layer & frontend model
+Diagram: portals (App Store, FOTAPortal, Device Management Portal) are shown as separate external portals that link into MQTT/topics and DBs — mainly UI/process view.
+Doc: recommends GraphQL backend, gqlgen, React + Apollo + subscriptions for real-time dashboards and details on resolver patterns and subscription scaling.
+Security specifics
+Diagram: does not show certificates, TLS, signing, or secrets management explicitly.
+Doc: detailed security architecture — mTLS, X.509 per-device certs, certificate revocation, signed firmware, JWT/RBAC, secrets in Vault.
+Observability & operational practices
+Diagram: no logging/monitoring/tracing components shown.
+Doc: includes Prometheus metrics, logging (ELK/Loki), tracing (Jaeger/OpenTelemetry), alerting thresholds, and RTO/RPO.
+Rollout & safety controls
+Diagram: implied manual or portal-driven dispatch; no staged rollout or canary strategy shown.
+Doc: explicit flows include rollback, and I recommended staged rollouts and gating (the doc itself mentions rollback; I suggested adding more staged rollout detail).
+Data model and indexing
+Diagram: shows App DB and Firmware DB conceptually but no schema or indexing recommendations.
+Doc: proposes full PostgreSQL schema (devices, firmware, campaigns, campaign_devices) and suggested fields.
+Resilience and scale guidance
+Diagram: no node counts, HA patterns, or capacity planning.
+Doc: explicit scaling recommendations (MQTT cluster sizing, Redis cluster, Postgres read replicas, PgBouncer, K8s HPA) and performance targets.
+Gaps in the diagram relative to the doc (i.e., things the diagram omits that matter operationally)
+
+No cache layer — causes heavier DB load in high-scale read scenarios.
+No service coordination (etcd) for config/leader election; easier to misconfigure at scale.
+No observability/alerting or DR/backup flows.
+No device provisioning/onboarding or certificate lifecycle shown (important for security).
+No staged rollout/canary automation or success-gating workflow.
+No mention of resumable downloads, chunking, or handling intermittent connectivity for firmware downloads.
