@@ -1,5 +1,6 @@
 https://www.tuvrblog.com/zh-tw/11265.html
 ## Spec
+![Spec](2026_propose.md)
 ## System Architecture Diagram (Mermaid)
 
 This diagram shows how the microservices interact.
@@ -54,20 +55,19 @@ flowchart TD
 ```
 ![Target System](Discuss.png) 
 
-![Spec](2026_propose.md)
-##高階摘要
+## 高階摘要
 
 兩個設計都針對物聯網裝置的 OTA / 遠端裝置管理，採用 MQTT 做即時通訊、HTTPS/雲端物件儲存做韌體/應用檔案傳遞。
 - 附圖（Dynamic Device Management system）是一個偏產品流程與 CI → 發行導向的高階圖，強調 CI、App/Firmware DB、各入口（App Store / FOTA / Device Management）與 MQTT topic 流向。
 - 2026_propose.md 則是一份完整的微服務級建議書，包含服務拆分、Redis 快取、etcd 做服務協調、觀測、資安、容量建議、GraphQL + gqlgen 與前端實作建議等較多的運維與技術細節。
-##相似處
+## 相似處
 
 - 運輸與交付：兩者都以 MQTT 作命令與狀態的即時通訊，並以 HTTPS（S3/GCS/MinIO）傳送韌體二進位檔案。
 - 核心功能：都包含裝置註冊/管理、韌體庫、OTA/FOTA 服務與管理後台（Dashboard / Portal）。
 - CI/發行流程：CI build → artifact 存入 DB/儲存 → 通知後端/服務發送通知給裝置，這條流程兩邊都有。
 - 裝置端行為：裝置透過 MQTT 接收命令、透過 HTTPS 下載並驗證韌體，然後回報狀態。
 
-##主要差異（要點）
+## 主要差異（要點）
 
 - 細節層級與範圍：
 圖表：偏流程視覺與產品面（誰上傳、哪些 Portal、哪些 topic）。
@@ -100,7 +100,7 @@ flowchart TD
 圖表：未提供節點數/叢集建議。
 文件：建議 MQTT 叢集規模、Redis cluster、Postgres read replicas、PgBouncer、K8s HPA 等，並給出效能目標（API latency、MQTT delivery、下載速率）。
 
-##圖表相對於文件的缺漏（運維/可用性風險）
+## 圖表相對於文件的缺漏（運維/可用性風險）
 
 - 沒有快取（Redis）會使得高併發讀查全落到 DB。
 - 未描述服務發現/配置中心（etcd），容易造成部署時硬編碼或不一致配置。
