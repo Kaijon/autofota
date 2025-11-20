@@ -53,6 +53,7 @@ flowchart TD
     style G fill:#f0f0f0,stroke:#595959
 ```
 ![Target System](Discuss.png) 
+
 ![Spec](2026_propose.md)
 高階摘要
 
