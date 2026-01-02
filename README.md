@@ -215,4 +215,75 @@ In contrast, the architecture from `2026_propose.md`, which includes a **Redis**
 -   **No Observability**: Lacks logging, alerting, or tracing, making it difficult to debug issues.
 -   **No Device Onboarding Flow**: Omits crucial security steps like certificate provisioning.
 -   **No Staged Rollout Strategy**: Lacks automated safety gates to prevent large-scale failures.
--   **No Resilient Download Handling**: Does not mention features like resumable downloads or chunking for unreliable connections.  
+-   **No Resilient Download Handling**: Does not mention features like resumable downloads or chunking for unreliable connections.
+
+```mermaid
+stateDiagram-v2
+    direction TB
+
+    %% States
+    state "OFF Mode" as OFF
+    state "Bootloader (SPL)" as SPL
+    state "IDLE Mode" as IDLE
+    state "RECORD Mode" as RECORD
+
+    %% Initial State
+    [*] --> OFF
+
+    %% --- Wake Up & Safety Checks ---
+    OFF --> SPL : Any Key Press (Wake)
+    OFF --> SPL : PWR_SW4 High (Thermal/Batt Event)
+    
+    %% Safety Conditions (Battery & Thermal)
+    SPL --> OFF : Batt <= 3.4V OR Temp >= 55C (Safety Shutdown)
+    SPL --> DISCHARGE : PWR_SW4 Wake & High Temp (Maintenance)
+
+    %% Key Validation (False Trigger Mitigation)
+    SPL --> OFF : PWR_SW1 Released < 1.5s (Ignore)
+    SPL --> OFF : PWR_SW2 Released < 1s (Ignore)
+
+    %% Valid Boot Transitions
+    SPL --> IDLE : PWR_SW1 Valid (Normal Boot)
+    SPL --> RECORD : PWR_SW2 Valid (Auto-Record)
+
+
+    %% --- Safety Discharge Logic (Background) ---
+    state "Safety Discharge" as DISCHARGE
+    
+    IDLE --> DISCHARGE : Temp >= 55C & Batt >= 4.1V (>4hr)
+    IDLE --> DISCHARGE : Temp >= 69C & Batt >= 3.9V (>10min)
+    
+    DISCHARGE --> IDLE : Voltage Reached Target
+    DISCHARGE --> OFF : Target 3.6V Reached (Shutdown)
+
+    %% --- Power Key (PWR_SW1) Transitions (System On) ---
+    
+    %% Power Off & Reset
+    IDLE --> OFF : PWR_SW1 Hold 5s (Power Off)
+    IDLE --> [*] : PWR_SW1 Hold 15s (Force Reset)
+
+    %% Feature Toggles (IDLE)
+    IDLE --> IDLE : PWR_SW1 Hold 1s (Toggle Private Mode)
+    IDLE --> IDLE : PWR_SW1 Hold 3s (Toggle WiFi)
+
+    %% Feature Toggles (RECORD)
+    RECORD --> RECORD : PWR_SW1 Hold 3s (Toggle Mute)
+
+
+    %% --- Record Key (PWR_SW2) Transitions (System On) ---
+
+    %% Start Recording
+    IDLE --> RECORD : PWR_SW2 Press 1s (Start Normal Record)
+    IDLE --> RECORD : PWR_SW2 Hold 3s (Start Audio-Only Record)
+
+    %% Recording Actions
+    RECORD --> RECORD : PWR_SW2 Press 1s (Add Bookmark)
+    RECORD --> IDLE : PWR_SW2 Hold 3s (Stop Recording)
+
+
+    %% Notes
+    note left of SPL
+        Check Gauge (I2C)
+        Check Key Duration
+    end note
+```
