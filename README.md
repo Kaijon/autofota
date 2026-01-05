@@ -239,7 +239,7 @@ stateDiagram-v2
     SPL --> DISCHARGE : PWR_SW4 Wake & High Temp (Maintenance)
 
     %% Key Validation (False Trigger Mitigation)
-    SPL --> OFF : PWR_SW1 Released < 1.5s (Ignore)
+    SPL --> OFF : PWR_SW1 Released < 1s (Ignore)
     SPL --> OFF : PWR_SW2 Released < 1s (Ignore)
 
     %% Valid Boot Transitions
